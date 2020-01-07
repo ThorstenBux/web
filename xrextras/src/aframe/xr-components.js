@@ -1,48 +1,49 @@
+const { XR8, XRExtras, THREE } = window
 const xrComponents = () => {
   // Display 'almost there' flows.
   const almostThereComponent = {
     schema: {
-      url: {default: ''},
+      url: { default: '' },
     },
-    init: function() {
+    init() {
       const load = () => {
-        this.data.url && XRExtras.AlmostThere.configure({url: this.data.url})
+        this.data.url && XRExtras.AlmostThere.configure({ url: this.data.url })
         XR8.addCameraPipelineModule(XRExtras.AlmostThere.pipelineModule())
       }
       window.XRExtras && window.XR8
         ? load()
-        : window.addEventListener('xrandextrasloaded', load, {once: true})
+        : window.addEventListener('xrandextrasloaded', load, { once: true })
     }
   }
 
   // Display loading screen.
   const onxrloaded = () => { XR8.addCameraPipelineModule(XRExtras.Loading.pipelineModule()) }
   const loadingComponent = {
-    init: function() {
+    init() {
       let aframeLoaded = false
-      this.el.addEventListener('loaded', () => {aframeLoaded = true})
-      const aframeDidLoad = () => { return aframeLoaded }
+      this.el.addEventListener('loaded', () => { aframeLoaded = true })
+      const aframeDidLoad = () => aframeLoaded
       const load = () => {
         XRExtras.Loading.setAppLoadedProvider(aframeDidLoad)
-        XRExtras.Loading.showLoading({onxrloaded})
+        XRExtras.Loading.showLoading({ onxrloaded })
       }
-      window.XRExtras ? load() : window.addEventListener('xrextrasloaded', load, {once: true})
+      window.XRExtras ? load() : window.addEventListener('xrextrasloaded', load, { once: true })
     }
   }
 
   // Show an error-handling scene on error.
   const runtimeErrorComponent = {
-    init: function() {
+    init() {
       const load = () => { XR8.addCameraPipelineModule(XRExtras.RuntimeError.pipelineModule()) }
       window.XRExtras && window.XR8
         ? load()
-        : window.addEventListener('xrandextrasloaded', load, {once: true})
+        : window.addEventListener('xrandextrasloaded', load, { once: true })
     }
   }
 
   // Recenter the scene when the screen is tapped.
   const tapRecenterComponent = {
-    init: function() {
+    init() {
       const scene = this.el.sceneEl
       scene.addEventListener('click', () => { scene.emit('recenter', {}) })
     }
@@ -56,19 +57,20 @@ const xrComponents = () => {
   // - Metadata: Metadata that was supplied in the xr console.
   const generateImageTargetsComponent = {
     schema: {
-      primitive: {type: 'string'},
+      primitive: { type: 'string' },
     },
-    init: function() {
+    init() {
       const componentMap = {}
 
-      const addComponents = ({detail}) => {
-        detail.imageTargets.forEach(({name, metadata, properties}) => {
+      const addComponents = ({ detail }) => {
+        detail.imageTargets.forEach(({ name, metadata, properties }) => {
           const el = document.createElement(this.data.primitive)
           el.setAttribute('id', `xrextras-imagetargets-${name}`)
           el.setAttribute('name', name)
           el.setAttribute('rotated', properties.isRotated ? 'true' : 'false')
           el.setAttribute(
-            'metadata', (typeof metadata === 'string') ? metadata : JSON.stringify(metadata))
+            'metadata', (typeof metadata === 'string') ? metadata : JSON.stringify(metadata)
+          )
           document.querySelector('a-scene').appendChild(el)
           componentMap[name] = el
         })
@@ -95,12 +97,12 @@ const xrComponents = () => {
     schema: {
       name: { type: 'string' }
     },
-    init: function () {
+    init() {
       const object3D = this.el.object3D
       const name = this.data.name
       object3D.visible = false
 
-      const showImage = ({detail}) => {
+      const showImage = ({ detail }) => {
         if (name != detail.name) {
           return
         }
@@ -110,7 +112,7 @@ const xrComponents = () => {
         object3D.visible = true
       }
 
-      const hideImage = ({detail}) => {
+      const hideImage = ({ detail }) => {
         if (name != detail.name) {
           return
         }
@@ -128,7 +130,7 @@ const xrComponents = () => {
     schema: {
       element: { default: '' },
     },
-    init: function () {
+    init() {
       this.targetElement = this.data.element && document.querySelector(this.data.element)
       if (!this.targetElement) {
         this.targetElement = this.el
@@ -144,7 +146,7 @@ const xrComponents = () => {
       this.targetElement.addEventListener('touchend', this.emitGestureEvent)
       this.targetElement.addEventListener('touchmove', this.emitGestureEvent)
     },
-    remove: function () {
+    remove() {
       this.targetElement.removeEventListener('touchstart', this.emitGestureEvent)
       this.targetElement.removeEventListener('touchend', this.emitGestureEvent)
       this.targetElement.removeEventListener('touchmove', this.emitGestureEvent)
@@ -153,15 +155,15 @@ const xrComponents = () => {
       const currentState = this.getTouchState(event)
       const previousState = this.internalState.previousState
 
-      const gestureContinues = previousState &&
-        currentState &&
-        currentState.touchCount == previousState.touchCount
+      const gestureContinues = previousState
+        && currentState
+        && currentState.touchCount == previousState.touchCount
 
       const gestureEnded = previousState && !gestureContinues
       const gestureStarted = currentState && !gestureContinues
 
       if (gestureEnded) {
-        const eventName = this.getEventPrefix(previousState.touchCount) + 'fingerend'
+        const eventName = `${this.getEventPrefix(previousState.touchCount)}fingerend`
         this.el.emit(eventName, previousState)
         this.internalState.previousState = null
       }
@@ -170,7 +172,7 @@ const xrComponents = () => {
         currentState.startTime = performance.now()
         currentState.startPosition = currentState.position
         currentState.startSpread = currentState.spread
-        const eventName = this.getEventPrefix(currentState.touchCount) + 'fingerstart'
+        const eventName = `${this.getEventPrefix(currentState.touchCount)}fingerstart`
         this.el.emit(eventName, currentState)
         this.internalState.previousState = currentState
       }
@@ -178,8 +180,8 @@ const xrComponents = () => {
       if (gestureContinues) {
         const eventDetail = {
           positionChange: {
-            x: currentState.position.x - previousState.position.x,
-            y: currentState.position.y - previousState.position.y
+            x : currentState.position.x - previousState.position.x,
+            y : currentState.position.y - previousState.position.y
           },
         }
 
@@ -193,12 +195,11 @@ const xrComponents = () => {
         // Add state data to event detail
         Object.assign(eventDetail, previousState)
 
-        const eventName = this.getEventPrefix(currentState.touchCount) + 'fingermove'
+        const eventName = `${this.getEventPrefix(currentState.touchCount)}fingermove`
         this.el.emit(eventName, eventDetail)
       }
     },
-    getTouchState: function (event) {
-
+    getTouchState(event) {
       if (event.touches.length == 0) {
         return null
       }
@@ -226,12 +227,11 @@ const xrComponents = () => {
 
       // Calculate average spread of touches from the center point
       if (touchList.length >= 2) {
-        const spread = touchList.reduce((sum, touch) => {
-          return sum +
-            Math.sqrt(
-              Math.pow(centerPositionRawX - touch.clientX, 2) +
-              Math.pow(centerPositionRawY - touch.clientY, 2))
-        }, 0) / touchList.length
+        const spread = touchList.reduce((sum, touch) => sum
+            + Math.sqrt(
+              Math.pow(centerPositionRawX - touch.clientX, 2)
+              + Math.pow(centerPositionRawY - touch.clientY, 2)
+            ), 0) / touchList.length
 
         touchState.spread = spread * screenScale
       }
@@ -246,56 +246,56 @@ const xrComponents = () => {
 
   const oneFingerRotateComponent = {
     schema: {
-      factor: {default: 6}
+      factor: { default: 6 }
     },
-    init: function () {
+    init() {
       this.handleEvent = this.handleEvent.bind(this)
       this.el.sceneEl.addEventListener('onefingermove', this.handleEvent)
       this.el.classList.add('cantap')  // Needs "objects: .cantap" attribute on raycaster.
     },
-    remove: function () {
+    remove() {
       this.el.sceneEl.removeEventListener('onefingermove', this.handleEvent)
     },
-    handleEvent: function (event) {
+    handleEvent(event) {
       this.el.object3D.rotation.y += event.detail.positionChange.x * this.data.factor
     }
   }
 
   const twoFingerRotateComponent = {
     schema: {
-      factor: {default: 5}
+      factor: { default: 5 }
     },
-    init: function() {
+    init() {
       this.handleEvent = this.handleEvent.bind(this)
       this.el.sceneEl.addEventListener('twofingermove', this.handleEvent)
       this.el.classList.add('cantap')  // Needs "objects: .cantap" attribute on raycaster.
     },
-    remove: function() {
+    remove() {
       this.el.sceneEl.removeEventListener('twofingermove', this.handleEvent)
     },
-    handleEvent: function(event) {
+    handleEvent(event) {
       this.el.object3D.rotation.y += event.detail.positionChange.x * this.data.factor
     }
   }
 
   const pinchScaleComponent = {
     schema: {
-      min: {default: .33},
-      max: {default: 3},
-      scale: {default: 0},  // If scale is set to zero here, the object's initial scale is used.
+      min   : { default: 0.33 },
+      max   : { default: 3 },
+      scale : { default: 0 },  // If scale is set to zero here, the object's initial scale is used.
     },
-    init: function() {
+    init() {
       const s = this.data.scale
-      this.initialScale = (s && {x: s, y: s, z: s}) || this.el.object3D.scale.clone()
+      this.initialScale = (s && { x: s, y: s, z: s }) || this.el.object3D.scale.clone()
       this.scaleFactor = 1
       this.handleEvent = this.handleEvent.bind(this)
       this.el.sceneEl.addEventListener('twofingermove', this.handleEvent)
       this.el.classList.add('cantap')  // Needs "objects: .cantap" attribute on raycaster.
     },
-    remove: function() {
+    remove() {
       this.el.sceneEl.removeEventListener('twofingermove', this.handleEvent)
     },
-    handleEvent: function(event) {
+    handleEvent(event) {
       this.scaleFactor *= 1 + event.detail.spreadChange / event.detail.startSpread
       this.scaleFactor = Math.min(Math.max(this.scaleFactor, this.data.min), this.data.max)
 
@@ -307,22 +307,22 @@ const xrComponents = () => {
 
   const holdDragComponent = {
     schema: {
-      cameraId: {default: 'camera'},
-      groundId: {default: 'ground'},
-      dragDelay: {default: 300 },
+      cameraId  : { default: 'camera' },
+      groundId  : { default: 'ground' },
+      dragDelay : { default: 300 },
 
     },
-    init: function() {
+    init() {
       this.camera = document.getElementById(this.data.cameraId)
       this.threeCamera = this.camera.getObject3D('camera')
       this.ground = document.getElementById(this.data.groundId)
 
       this.internalState = {
-        fingerDown: false,
-        dragging: false,
-        distance: 0,
-        startDragTimeout: null,
-        raycaster: new THREE.Raycaster(),
+        fingerDown       : false,
+        dragging         : false,
+        distance         : 0,
+        startDragTimeout : null,
+        raycaster        : new THREE.Raycaster(),
       }
 
       this.fingerDown = this.fingerDown.bind(this)
@@ -335,11 +335,10 @@ const xrComponents = () => {
       this.el.sceneEl.addEventListener('onefingerend', this.fingerUp)
       this.el.classList.add('cantap')  // Needs "objects: .cantap" attribute on raycaster.
     },
-    tick: function() {
+    tick() {
       if (this.internalState.dragging) {
         let desiredPosition = null
         if (this.internalState.positionRaw) {
-
           const screenPositionX = this.internalState.positionRaw.x / document.body.clientWidth * 2 - 1
           const screenPositionY = this.internalState.positionRaw.y / document.body.clientHeight * 2 - 1
           const screenPosition = new THREE.Vector2(screenPositionX, -screenPositionY)
@@ -364,7 +363,7 @@ const xrComponents = () => {
         this.el.object3D.position.lerp(desiredPosition, 0.2)
       }
     },
-    remove: function() {
+    remove() {
       this.el.removeEventListener('mousedown', this.fingerDown)
       this.el.scene.removeEventListener('onefingermove', this.fingerMove)
       this.el.scene.removeEventListener('onefingerend', this.fingerUp)
@@ -372,22 +371,22 @@ const xrComponents = () => {
         this.fingerUp()
       }
     },
-    fingerDown: function(event) {
+    fingerDown(event) {
       this.internalState.fingerDown = true
       this.internalState.startDragTimeout = setTimeout(this.startDrag, this.data.dragDelay)
       this.internalState.positionRaw = event.detail.positionRaw
     },
-    startDrag: function(event) {
-        if (!this.internalState.fingerDown ) {
-          return
-        }
-        this.internalState.dragging = true
-        this.internalState.distance = this.el.object3D.position.distanceTo(this.camera.object3D.position)
-      },
-    fingerMove: function(event) {
+    startDrag(event) {
+      if (!this.internalState.fingerDown) {
+        return
+      }
+      this.internalState.dragging = true
+      this.internalState.distance = this.el.object3D.position.distanceTo(this.camera.object3D.position)
+    },
+    fingerMove(event) {
       this.internalState.positionRaw = event.detail.positionRaw
     },
-    fingerUp: function(event) {
+    fingerUp(event) {
       this.internalState.fingerDown = false
       clearTimeout(this.internalState.startDragTimeout)
 
@@ -396,10 +395,10 @@ const xrComponents = () => {
       if (this.internalState.dragging) {
         const endPosition = this.el.object3D.position.clone()
         this.el.setAttribute('animation__drop', {
-          property: 'position',
-          to: `${endPosition.x} 0 ${endPosition.z}`,
-          dur: 300,
-          easing: 'easeOutQuad',
+          property : 'position',
+          to       : `${endPosition.x} 0 ${endPosition.z}`,
+          dur      : 300,
+          easing   : 'easeOutQuad',
         })
       }
       this.internalState.dragging = false
@@ -408,10 +407,10 @@ const xrComponents = () => {
 
   const attachComponent = {
     schema: {
-      target: {default: '' },
-      offset: {default: '0 0 0'},
+      target : { default: '' },
+      offset : { default: '0 0 0' },
     },
-    update: function() {
+    update() {
       const targetElement = document.getElementById(this.data.target)
       if (!targetElement) {
         return
@@ -419,24 +418,25 @@ const xrComponents = () => {
       this.target = targetElement.object3D
       this.offset = this.data.offset.split(' ').map(n => Number(n))
     },
-    tick: function() {
+    tick() {
       if (!this.target) {
         return
       }
       const [x, y, z] = this.offset
       this.el.object3D.position.set(
-        this.target.position.x + x, this.target.position.y + y, this.target.position.z + z)
+        this.target.position.x + x, this.target.position.y + y, this.target.position.z + z
+      )
     }
   }
 
   // Triggers video playback on tap.
   const playVideoComponent = {
     schema: {
-      video: {type: 'string' },
-      thumb: {type: 'string' },
-      canstop: {type: 'bool' },
+      video   : { type: 'string' },
+      thumb   : { type: 'string' },
+      canstop : { type: 'bool' },
     },
-    init: function () {
+    init() {
       const v = document.querySelector(this.data.video)
       const p = this.data.thumb && document.querySelector(this.data.thumb)
 
@@ -462,29 +462,33 @@ const xrComponents = () => {
 
   // Log console messages over the scene.
   const logToScreenComponent = {
-    init: function () {
+    init() {
       XRExtras.DebugWebViews.enableLogToScreen()
     }
   }
 
   return {
-    'xrextras-almost-there': almostThereComponent,
-    'xrextras-loading': loadingComponent,
-    'xrextras-runtime-error': runtimeErrorComponent,
-    'xrextras-tap-recenter': tapRecenterComponent,
-    'xrextras-generate-image-targets': generateImageTargetsComponent,
-    'xrextras-named-image-target': namedImageTargetComponent,
-    'xrextras-gesture-detector': gestureDetectorComponent,
-    'xrextras-one-finger-rotate': oneFingerRotateComponent,
-    'xrextras-two-finger-rotate': twoFingerRotateComponent,
-    'xrextras-pinch-scale': pinchScaleComponent,
-    'xrextras-hold-drag': holdDragComponent,
-    'xrextras-attach': attachComponent,
-    'xrextras-play-video': playVideoComponent,
-    'xrextras-log-to-screen': logToScreenComponent,
+    'xrextras-almost-there'           : almostThereComponent,
+    'xrextras-loading'                : loadingComponent,
+    'xrextras-runtime-error'          : runtimeErrorComponent,
+    'xrextras-tap-recenter'           : tapRecenterComponent,
+    'xrextras-generate-image-targets' : generateImageTargetsComponent,
+    'xrextras-named-image-target'     : namedImageTargetComponent,
+    'xrextras-gesture-detector'       : gestureDetectorComponent,
+    'xrextras-one-finger-rotate'      : oneFingerRotateComponent,
+    'xrextras-two-finger-rotate'      : twoFingerRotateComponent,
+    'xrextras-pinch-scale'            : pinchScaleComponent,
+    'xrextras-hold-drag'              : holdDragComponent,
+    'xrextras-attach'                 : attachComponent,
+    'xrextras-play-video'             : playVideoComponent,
+    'xrextras-log-to-screen'          : logToScreenComponent,
   }
 }
 
-module.exports = {
+/* module.exports = {
   xrComponents,
+} */
+
+export default {
+  xrComponents
 }

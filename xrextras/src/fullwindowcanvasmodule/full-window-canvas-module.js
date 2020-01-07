@@ -41,8 +41,8 @@ function create() {
     const wh = uwh * devicePixelRatio
 
     // Wait for orientation change to take effect before handline resize.
-    if (((orientation_ == 0 || orientation_ == 180) && ww > wh)
-      || ((orientation_ == 90 || orientation_ == -90) && wh > ww)) {
+    if (((orientation_ === 0 || orientation_ === 180) && ww > wh)
+      || ((orientation_ === 90 || orientation_ === -90) && wh > ww)) {
       window.requestAnimationFrame(fillScreenWithCanvas)
       return
     }
@@ -77,7 +77,7 @@ function create() {
 
     // Switch back to a landscape aspect ratio if required.
     if (ww > wh) {
-      let tmp = cw
+      const tmp = cw
       cw = ch
       ch = tmp
     }
@@ -94,17 +94,17 @@ function create() {
     setTimeout(() => window.scrollTo(0, (window.scrollY + 1) % 2), 300)
   }
 
-  const updateVideoSize = ({videoWidth, videoHeight}) => {
+  const updateVideoSize = ({ videoWidth, videoHeight }) => {
     vsize_.w = videoWidth
     vsize_.h = videoHeight
   }
 
-  const onVideoSizeChange = ({videoWidth, videoHeight}) => {
-    updateVideoSize({videoWidth, videoHeight})
+  const onVideoSizeChange = ({ videoWidth, videoHeight }) => {
+    updateVideoSize({ videoWidth, videoHeight })
     fillScreenWithCanvas()
   }
 
-  const onCameraStatusChange = ({status, video}) => {
+  const onCameraStatusChange = ({ status, video }) => {
     if (status !== 'hasVideo') {
       return
     }
@@ -123,32 +123,30 @@ function create() {
     fillScreenWithCanvas()
   }
 
-  const onStart = ({canvas, orientation}) => {
+  const onStart = ({ canvas, orientation }) => {
     canvas_ = canvas
     orientation_ = orientation
     const body = document.getElementsByTagName('body')[0]
     Object.assign(body.style, bodyStyle_)
 
-    body.appendChild(canvas_)
+    //body.appendChild(canvas_)
     fillScreenWithCanvas()
   }
 
-  const onDeviceOrientationChange = ({orientation}) => {
+  const onDeviceOrientationChange = ({ orientation }) => {
     orientation_ = orientation
     fillScreenWithCanvas()
   }
 
-  const pipelineModule = () => {
-    return {
-      name: 'fullwindowcanvas',
-      onStart,
-      onCameraStatusChange,
-      onDeviceOrientationChange,
-      onVideoSizeChange,
-      onCanvasSizeChange,
-      onUpdate,
-    }
-  }
+  const pipelineModule = () => ({
+    name: 'fullwindowcanvas',
+    onStart,
+    onCameraStatusChange,
+    onDeviceOrientationChange,
+    onVideoSizeChange,
+    onCanvasSizeChange,
+    onUpdate,
+  })
 
   return {
     // Creates a camera pipeline module that, when installed, keeps the canvas specified on

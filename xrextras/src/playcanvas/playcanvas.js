@@ -1,3 +1,4 @@
+const { pc } = window
 let playcanvas = null
 
 const PlayCanvasFactory = () => {
@@ -10,7 +11,7 @@ const PlayCanvasFactory = () => {
 
 function create() {
   // Attach a shader to a material that makes it appear transparent while still receiving shadows.
-  const makeShadowMaterial = ({pc, material}) => {
+  const makeShadowMaterial = ({ pc, material }) => {
     const materialResource = material.resource || material
     const shadowFragmentShader = `
       #ifdef GL2
@@ -36,16 +37,14 @@ function create() {
   // is printed, and undefined is returned.
   const findOneCamera = (entity) => {
     // Recursively traverse an entity graph until the root is reached.
-    const findRoot = (entity) => (entity.parent && findRoot(entity.parent)) || entity
+    const findRoot = entity => (entity.parent && findRoot(entity.parent)) || entity
 
     // Return a node and all entities in its subtree as a flat list, in pre-order traversal order.
     // Note thiat subtree(findRoot(entity)) will return all nodes in the graph of entity.
-    const subtree = (entity) =>
-      [entity].concat(entity.children.reduce((r, v) => r.concat(subtree(v)), []))
+    const subtree = entity => [entity].concat(entity.children.reduce((r, v) => r.concat(subtree(v)), []))
 
     // Find all camera entities in the graph of an entity.
-    const cameras = (entity) =>
-      subtree(findRoot(entity)).filter(v => v.camera && v.camera instanceof pc.CameraComponent)
+    const cameras = entity => subtree(findRoot(entity)).filter(v => v.camera && v.camera instanceof pc.CameraComponent)
 
     // Get the cameras in the request entity's graph, and print an error or warning if there isn't
     // exactly one.
@@ -64,11 +63,11 @@ function create() {
 
   // Configures the playcanvas entity to to track the image target with the specified name. This
   // matches the name set in the 8th Wall console.
-  const trackImageTargetWithName = ({name, entity, app}) => {
+  const trackImageTargetWithName = ({ name, entity, app }) => {
     entity.enabled = false
     const showImage = (detail) => {
       if (name != detail.name) { return }
-      const {rotation, position, scale} = detail
+      const { rotation, position, scale } = detail
       entity.setRotation(rotation.x, rotation.y, rotation.z, rotation.w)
       entity.setPosition(position.x, position.y, position.z)
       entity.setLocalScale(scale, scale, scale)
