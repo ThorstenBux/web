@@ -1,3 +1,6 @@
+# Notice
+This is a fork of https://github.com/8thwall/web as I'm only interested in xrextras I've removed all the other directories.
+
 # 8th Wall Web
 
 8th Wall Web: Web AR for mobile devices!
